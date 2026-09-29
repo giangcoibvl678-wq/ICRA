@@ -353,7 +353,7 @@
     ];
 
     // ==================== COMPONENT: HEADER ====================
-    function Header({ student }) {
+    function Header({ student, onLogout }) {
       const [timeLeft, setTimeLeft] = useState(267320); // Countdown starts at 74:15:20 (267,320 seconds)
       const [isNotifOpen, setIsNotifOpen] = useState(false);
       const [notifications, setNotifications] = useState([
@@ -514,6 +514,16 @@
               >
                 {student.initials || "AT"}
               </div>
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                  title="Đăng xuất"
+                >
+                  <i data-lucide="log-out" className="w-4 h-4"></i>
+                </button>
+              )}
             </div>
           </div>
         </header>
@@ -1572,8 +1582,295 @@
       );
     }
 
-    // ==================== MAIN ROOT APP ====================
-    function App() {
+    // ==================== MOCK USER DATABASE ====================
+    const MOCK_USERS = [
+      { studentId: "DTC245210002", password: "icra2026", displayName: "An Bá Thành", classGroup: "CNTT K24", initials: "AT" },
+      { studentId: "DTC245210001", password: "icra2026", displayName: "Nguyễn Văn A", classGroup: "CNTT K24", initials: "NA" },
+    ];
+
+    // ==================== COMPONENT: LOGIN PAGE ====================
+    function LoginPage({ onLogin, onGoSignUp }) {
+      const [studentId, setStudentId] = useState("DTC245210002");
+      const [password, setPassword] = useState("icra2026");
+      const [showPass, setShowPass] = useState(false);
+      const [error, setError] = useState("");
+      const [loading, setLoading] = useState(false);
+      const [term, setTerm] = useState("hk1-2026");
+
+      useEffect(() => {
+        lucide.createIcons();
+      });
+
+      const handleSubmit = (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        setError("");
+        const sId = (studentId || "").trim();
+        const pwd = (password || "").trim();
+        if (!sId || !pwd) {
+          setError("Vui lòng nhập đầy đủ MSSV và mật khẩu.");
+          return;
+        }
+        setLoading(true);
+        setTimeout(() => {
+          const user = MOCK_USERS.find(u => u.studentId.toUpperCase() === sId.toUpperCase() && u.password === pwd);
+          if (user) {
+            setLoading(false);
+            onLogin(user, term);
+          } else {
+            setError("MSSV hoặc mật khẩu không chính xác. (Mẫu: DTC245210002 / icra2026)");
+            setLoading(false);
+          }
+        }, 400);
+      };
+
+      const bgStyle = {
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #0f2b5b 0%, #1e40af 55%, #1e293b 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 16,
+        position: "relative",
+        overflow: "hidden"
+      };
+      const inp = {
+        boxSizing: "border-box",
+        padding: "10px 14px",
+        fontSize: 13,
+        border: "1px solid #e2e8f0",
+        borderRadius: 12,
+        outline: "none",
+        color: "#0f172a",
+        width: "100%"
+      };
+
+      return (
+        <div style={bgStyle}>
+          <div style={{ position: "absolute", top: -100, left: -100, width: 400, height: 400, background: "rgba(59,130,246,0.15)", borderRadius: "50%", filter: "blur(60px)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: -80, right: -80, width: 350, height: 350, background: "rgba(139,92,246,0.15)", borderRadius: "50%", filter: "blur(60px)", pointerEvents: "none" }} />
+          <div style={{ width: "100%", maxWidth: 420, position: "relative", zIndex: 10 }}>
+            <div style={{ textAlign: "center", marginBottom: 28 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", justifyCenter: "center", width: 64, height: 64, borderRadius: 18, background: "rgba(59,130,246,0.2)", border: "1px solid rgba(147,197,253,0.3)", marginBottom: 12, boxShadow: "0 8px 32px rgba(37,99,235,0.3)" }}>
+                <span style={{ fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: -1, margin: "auto" }}>IC</span>
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: "#fff", letterSpacing: -1 }}>ICRA</div>
+              <div style={{ color: "#bfdbfe", fontSize: 12, marginTop: 3, fontWeight: 500 }}>Intelligent Course Registration Assistant</div>
+              <div style={{ color: "rgba(191,219,254,0.55)", fontSize: 11, marginTop: 2 }}>Trường ĐH Công nghệ Thông tin &amp; Truyền thông (ICTU)</div>
+            </div>
+
+            <div style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)", borderRadius: 24, boxShadow: "0 25px 60px rgba(0,0,0,0.4)", padding: "32px 32px 28px", border: "1px solid rgba(255,255,255,0.25)" }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", marginBottom: 4 }}>Đăng nhập Hệ thống</div>
+              <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 20 }}>Sử dụng tài khoản sinh viên ICTU để tiếp tục</div>
+
+              {error && (
+                <div style={{ marginBottom: 14, padding: "10px 14px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 12, display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#b91c1c", fontWeight: 500 }}>
+                  <i data-lucide="alert-circle" style={{ width: 14, height: 14, flexShrink: 0 }} />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#475569", marginBottom: 6 }}>Đợt đăng ký</label>
+                  <select value={term} onChange={e => setTerm(e.target.value)} style={{ ...inp, background: "#f8fafc", fontWeight: 500 }}>
+                    <option value="hk1-2026">Học kỳ 1 (2026 - 2027) — Đợt chính</option>
+                    <option value="hk1-bs">Học kỳ 1 (2026 - 2027) — Đợt bổ sung</option>
+                    <option value="hk2-2025">Học kỳ 2 (2025 - 2026) — Xem lại</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#475569", marginBottom: 6 }}>Mã số sinh viên (MSSV)</label>
+                  <div style={{ position: "relative" }}>
+                    <i data-lucide="user" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#94a3b8" }} />
+                    <input type="text" value={studentId} onChange={e => setStudentId(e.target.value)} placeholder="VD: DTC245210002" style={{ ...inp, paddingLeft: 40, fontFamily: "JetBrains Mono, monospace" }} />
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#475569", marginBottom: 6 }}>Mật khẩu</label>
+                  <div style={{ position: "relative" }}>
+                    <i data-lucide="lock" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#94a3b8" }} />
+                    <input type={showPass ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Nhập mật khẩu" style={{ ...inp, paddingLeft: 40, paddingRight: 44 }} />
+                    <button type="button" onClick={() => setShowPass(v => !v)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: 0, display: "flex" }}>
+                      <i data-lucide={showPass ? "eye-off" : "eye"} style={{ width: 16, height: 16 }} />
+                    </button>
+                  </div>
+                </div>
+                <button type="submit" disabled={loading} style={{ width: "100%", padding: "12px 0", background: loading ? "#93c5fd" : "#2563eb", color: "#fff", fontWeight: 800, fontSize: 13, borderRadius: 12, border: "none", cursor: loading ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(37,99,235,0.35)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 4 }}>
+                  {loading ? (
+                    <><span style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.35)", borderTop: "2px solid #fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /><span>Đang đăng nhập...</span></>
+                  ) : (
+                    <><span>Đăng nhập vào Hệ thống</span><i data-lucide="arrow-right" style={{ width: 16, height: 16 }} /></>
+                  )}
+                </button>
+              </form>
+
+              <div style={{ display: "flex", alignItems: "center", margin: "18px 0", gap: 10 }}>
+                <div style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
+                <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 500 }}>Chưa có tài khoản?</span>
+                <div style={{ flex: 1, height: 1, background: "#e2e8f0" }} />
+              </div>
+
+              <button type="button" onClick={onGoSignUp} style={{ width: "100%", padding: "11px 0", border: "2px solid #e2e8f0", background: "transparent", color: "#475569", fontWeight: 700, fontSize: 13, borderRadius: 12, cursor: "pointer" }}>
+                Tạo tài khoản mới
+              </button>
+            </div>
+            <div style={{ textAlign: "center", color: "rgba(191,219,254,0.7)", fontSize: 11, marginTop: 16, background: "rgba(0,0,0,0.2)", padding: "8px 12px", borderRadius: 10 }}>
+              Tài khoản mẫu: MSSV <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#93c5fd" }}>DTC245210002</span> | Mật khẩu <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#93c5fd" }}>icra2026</span>
+            </div>
+          </div>
+          <style>{"@keyframes spin{to{transform:rotate(360deg)}}"}</style>
+        </div>
+      );
+    }
+
+    // ==================== COMPONENT: SIGN UP PAGE ====================
+    function SignUpPage({ onGoLogin }) {
+      const [form, setForm] = useState({ displayName: "", studentId: "", email: "", classGroup: "", major: "CNTT", password: "", confirm: "" });
+      const [showPass, setShowPass] = useState(false);
+      const [error, setError] = useState("");
+      const [loading, setLoading] = useState(false);
+      const [done, setDone] = useState(false);
+
+      useEffect(() => {
+        lucide.createIcons();
+      });
+
+      const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
+
+      const handleSubmit = e => {
+        if (e && e.preventDefault) e.preventDefault();
+        setError("");
+        if (!form.displayName || !form.studentId || !form.email || !form.classGroup || !form.password || !form.confirm) {
+          setError("Vui lòng điền đầy đủ tất cả các trường bắt buộc.");
+          return;
+        }
+        if (!form.email.includes("@")) {
+          setError("Địa chỉ email không hợp lệ.");
+          return;
+        }
+        if (form.password.length < 6) {
+          setError("Mật khẩu phải có ít nhất 6 ký tự.");
+          return;
+        }
+        if (form.password !== form.confirm) {
+          setError("Mật khẩu xác nhận không khớp.");
+          return;
+        }
+        setLoading(true);
+        setTimeout(() => {
+          MOCK_USERS.push({
+            studentId: form.studentId.trim(),
+            password: form.password,
+            displayName: form.displayName.trim(),
+            classGroup: form.classGroup.trim(),
+            initials: form.displayName.trim().split(" ").map(w => w[0]).join("").slice(-2).toUpperCase() || "SV"
+          });
+          setLoading(false);
+          setDone(true);
+        }, 500);
+      };
+
+      const inp2 = { boxSizing: "border-box", padding: "9px 12px", fontSize: 12, border: "1px solid #e2e8f0", borderRadius: 10, outline: "none", color: "#0f172a", width: "100%" };
+
+      if (done) return (
+        <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#0f2b5b 0%,#1e40af 55%,#1e293b 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ width: "100%", maxWidth: 400, textAlign: "center" }}>
+            <div style={{ background: "rgba(255,255,255,0.97)", borderRadius: 24, boxShadow: "0 25px 60px rgba(0,0,0,0.4)", padding: "40px 32px", border: "1px solid rgba(255,255,255,0.25)" }}>
+              <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#d1fae5", color: "#059669", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, margin: "0 auto 16px" }}>✓</div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: "#0f172a", marginBottom: 8 }}>Đăng ký thành công!</div>
+              <div style={{ fontSize: 13, color: "#64748b", marginBottom: 4 }}>Tài khoản của bạn đã được khởi tạo trong hệ thống.</div>
+              <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 24 }}>Vui lòng đăng nhập để bắt đầu đăng ký học phần.</div>
+              <button onClick={onGoLogin} style={{ width: "100%", padding: "12px 0", background: "#2563eb", color: "#fff", fontWeight: 800, fontSize: 13, borderRadius: 12, border: "none", cursor: "pointer", boxShadow: "0 4px 20px rgba(37,99,235,0.3)" }}>Đăng nhập ngay</button>
+            </div>
+          </div>
+        </div>
+      );
+
+      return (
+        <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#0f2b5b 0%,#1e40af 55%,#1e293b 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: -100, right: -80, width: 350, height: 350, background: "rgba(59,130,246,0.15)", borderRadius: "50%", filter: "blur(60px)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: -80, left: -80, width: 300, height: 300, background: "rgba(139,92,246,0.15)", borderRadius: "50%", filter: "blur(60px)", pointerEvents: "none" }} />
+          <div style={{ width: "100%", maxWidth: 440, position: "relative", zIndex: 10 }}>
+            <div style={{ textAlign: "center", marginBottom: 20 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", justifyCenter: "center", width: 48, height: 48, borderRadius: 14, background: "rgba(59,130,246,0.2)", border: "1px solid rgba(147,197,253,0.3)", marginBottom: 10 }}>
+                <span style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: "auto" }}>IC</span>
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: -0.5 }}>Tạo tài khoản ICRA</div>
+              <div style={{ color: "rgba(191,219,254,0.55)", fontSize: 11, marginTop: 2 }}>Trường ĐH Công nghệ Thông tin &amp; Truyền thông</div>
+            </div>
+            <div style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)", borderRadius: 24, boxShadow: "0 25px 60px rgba(0,0,0,0.4)", padding: "28px 28px 24px", border: "1px solid rgba(255,255,255,0.25)" }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", marginBottom: 3 }}>Thông tin sinh viên</div>
+              <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 18 }}>Điền đầy đủ thông tin để hoàn tất đăng ký</div>
+
+              {error && (
+                <div style={{ marginBottom: 12, padding: "9px 13px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10, display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "#b91c1c", fontWeight: 500 }}>
+                  <i data-lucide="alert-circle" style={{ width: 13, height: 13, flexShrink: 0 }} />
+                  <span>{error}</span>
+                </div>
+              )}
+              <form onSubmit={handleSubmit}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                  <div style={{ gridColumn: "1/-1" }}>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#475569", marginBottom: 5 }}>Họ và tên <span style={{ color: "#ef4444" }}>*</span></label>
+                    <input value={form.displayName} onChange={set("displayName")} type="text" placeholder="VD: Nguyễn Văn A" style={inp2} />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#475569", marginBottom: 5 }}>MSSV <span style={{ color: "#ef4444" }}>*</span></label>
+                    <input value={form.studentId} onChange={set("studentId")} type="text" placeholder="DTC24521XXXX" style={{ ...inp2, fontFamily: "monospace" }} />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#475569", marginBottom: 5 }}>Lớp <span style={{ color: "#ef4444" }}>*</span></label>
+                    <input value={form.classGroup} onChange={set("classGroup")} type="text" placeholder="VD: CNTT K24" style={inp2} />
+                  </div>
+                  <div style={{ gridColumn: "1/-1" }}>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#475569", marginBottom: 5 }}>Email <span style={{ color: "#ef4444" }}>*</span></label>
+                    <input value={form.email} onChange={set("email")} type="email" placeholder="mssv@students.ictu.edu.vn" style={inp2} />
+                  </div>
+                  <div style={{ gridColumn: "1/-1" }}>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#475569", marginBottom: 5 }}>Chuyên ngành</label>
+                    <select value={form.major} onChange={set("major")} style={{ ...inp2, background: "#f8fafc" }}>
+                      <option value="CNTT">Công nghệ Thông tin</option>
+                      <option value="KTPM">Kỹ thuật Phần mềm</option>
+                      <option value="ATTT">An toàn Thông tin</option>
+                      <option value="KHMT">Khoa học Máy tính</option>
+                      <option value="HTTT">Hệ thống Thông tin</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#475569", marginBottom: 5 }}>Mật khẩu <span style={{ color: "#ef4444" }}>*</span></label>
+                    <div style={{ position: "relative" }}>
+                      <input value={form.password} onChange={set("password")} type={showPass ? "text" : "password"} placeholder="Tối thiểu 6 ký tự" style={{ ...inp2, paddingRight: 36 }} />
+                      <button type="button" onClick={() => setShowPass(v => !v)} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8", display: "flex", padding: 0 }}>
+                        <i data-lucide={showPass ? "eye-off" : "eye"} style={{ width: 14, height: 14 }} />
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#475569", marginBottom: 5 }}>Xác nhận MK <span style={{ color: "#ef4444" }}>*</span></label>
+                    <input value={form.confirm} onChange={set("confirm")} type="password" placeholder="Nhập lại mật khẩu" style={inp2} />
+                  </div>
+                </div>
+                <button type="submit" disabled={loading} style={{ width: "100%", padding: "11px 0", background: loading ? "#93c5fd" : "#2563eb", color: "#fff", fontWeight: 800, fontSize: 13, borderRadius: 12, border: "none", cursor: loading ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(37,99,235,0.3)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  {loading ? (
+                    <><span style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.4)", borderTop: "2px solid #fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /><span>Đang xử lý...</span></>
+                  ) : (
+                    <><span>Tạo tài khoản</span><i data-lucide="user-plus" style={{ width: 15, height: 15 }} /></>
+                  )}
+                </button>
+              </form>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 14, gap: 6, fontSize: 11 }}>
+                <span style={{ color: "#94a3b8" }}>Đã có tài khoản?</span>
+                <button onClick={onGoLogin} style={{ color: "#2563eb", fontWeight: 700, background: "none", border: "none", cursor: "pointer", fontSize: 11 }}>Đăng nhập</button>
+              </div>
+            </div>
+          </div>
+          <style>{"@keyframes spin{to{transform:rotate(360deg)}}"}</style>
+        </div>
+      );
+    }
+
+    // ==================== COMPONENT: MAIN WORKSPACE PAGE ====================
+    function WorkspacePage({ student, onLogout }) {
       const [courses, setCourses] = useState(INITIAL_COURSES);
       const [selectedIds, setSelectedIds] = useState(["CS101", "CS201", "MATH101", "ENG101"]);
       const [ghostCourse, setGhostCourse] = useState(null);
@@ -1604,7 +1901,6 @@
       };
 
       const handleAddCourse = (course) => {
-        // Detect Collision via interval math
         const clash = courses.find(x => selectedIds.includes(x.id) && checkIntervalConflict(course, x));
         if (clash) {
           setConflict({ incomingCourse: course, existingCourse: clash });
@@ -1658,7 +1954,7 @@
 
       return (
         <div className="h-full flex flex-col overflow-hidden">
-          <Header student={STUDENT} />
+          <Header student={student} onLogout={onLogout} />
 
           <ConflictAlert 
             conflict={conflict} 
@@ -1696,7 +1992,7 @@
             />
           </main>
 
-                    <CourseDetailModal
+          <CourseDetailModal
             course={selectedDetailCourse}
             isSelected={Boolean(selectedDetailCourse && selectedIds.includes(selectedDetailCourse.id))}
             isClashing={Boolean(selectedDetailCourse && courses.filter(function(c) { return selectedIds.includes(c.id); }).some(function(sel) { return checkIntervalConflict(selectedDetailCourse, sel); }))}
@@ -1709,12 +2005,11 @@
             isOpen={isReviewOpen}
             onClose={() => setIsReviewOpen(false)}
             onConfirm={handleConfirmRegistration}
-            student={STUDENT}
+            student={student}
             courses={courses}
             selectedIds={selectedIds}
           />
 
-          {/* Receipt Modal */}
           {isReceiptOpen && (
             <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
               <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-5 text-center border border-slate-100 animate-in fade-in zoom-in duration-200">
@@ -1760,6 +2055,39 @@
           <ToastContainer toasts={toasts} onDismiss={(id) => setToasts(prev => prev.filter(t => t.id !== id))} />
         </div>
       );
+    }
+
+    // ==================== MAIN ROOT APP ====================
+    function App() {
+      const [authScreen, setAuthScreen] = useState("login");
+      const [loggedInUser, setLoggedInUser] = useState(null);
+
+      const handleLogin = (user, term) => {
+        setLoggedInUser({ ...user, term });
+        setAuthScreen("app");
+      };
+
+      const handleLogout = () => {
+        setLoggedInUser(null);
+        setAuthScreen("login");
+      };
+
+      if (authScreen === "login") {
+        return <LoginPage onLogin={handleLogin} onGoSignUp={() => setAuthScreen("signup")} />;
+      }
+      if (authScreen === "signup") {
+        return <SignUpPage onGoLogin={() => setAuthScreen("login")} />;
+      }
+
+      const activeStudent = {
+        ...STUDENT,
+        name: loggedInUser ? (loggedInUser.displayName || loggedInUser.name) : STUDENT.name,
+        studentId: loggedInUser ? loggedInUser.studentId : STUDENT.studentId,
+        classGroup: loggedInUser ? loggedInUser.classGroup : STUDENT.classGroup,
+        initials: loggedInUser ? loggedInUser.initials : STUDENT.initials,
+      };
+
+      return <WorkspacePage student={activeStudent} onLogout={handleLogout} />;
     }
 
     ReactDOM.createRoot(document.getElementById('root')).render(<App />);
